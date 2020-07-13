@@ -1,0 +1,27 @@
+[package]
+name = "pxcmprs-server"
+version = "0.1.0"
+authors = ["Åke Amcoff <ake.amcoff@gmail.com>"]
+edition = "2018"
+repository = "https://github.com/pxcmprs/server"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.pxcmprs-core]
+version = "0.1.1"
+default-features = false
+features = ["pipeline"]
+
+[dependencies.num]
+version = "0.3"
+default-features = false
+
+[dependencies]
+actix-web = "2.0"
+actix-rt = "1.0"
+actix-http = "1"
+failure = "0.1"
+serde = "1"
+base64 = "0.12"
+reqwest = "0.10"
+humansize = "1"

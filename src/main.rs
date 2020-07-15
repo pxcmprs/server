@@ -1,28 +1,18 @@
-use actix_http::ResponseBuilder;
-use actix_web::{
-    get,
-    http::{header, StatusCode},
-    web, App, HttpRequest, HttpResponse, HttpServer, Result,
-};
-use pxcmprs_core::pipeline::handle_query;
-use pxcmprs_core::spec::{Encoding, Query, ResizeMode};
-use serde::Deserialize;
-
-/// Related to output encodings.
-mod encoding;
-
-/// Errors!
+mod cache;
 mod error;
+mod transform;
 
-/// Limits so that the servers don't blow up.
-mod limits;
-
-mod fetching;
-
-use encoding::detect_encoding;
-use error::PxcmprsError;
-use fetching::fetch_bytes;
-use limits::PxcmprsLimits;
+use actix_web::{
+    http::{header, StatusCode},
+    web, App, HttpRequest, HttpResponse, HttpServer,
+};
+use cache::Cache;
+use serde::Deserialize;
+use std::time::Duration;
+use transform::{
+    encoding::{Encoding, Serializable as SerializableEncoding},
+    error::TransformError,
+};
 
 /// Commands defined in the request path.
 #[derive(Deserialize)]
@@ -30,101 +20,58 @@ struct Command {
     /// URL of the input, base64url-encoded.
     source: String,
 
-    /// Encoding defined in the path as a file extension, e.g. `.jpeg`.
-    encoding: Option<Encoding>,
+    encoding: Option<SerializableEncoding>,
 }
 
-/// Dimensions defined in the query.
 #[derive(Deserialize)]
-struct Dimensions {
-    /// Width of the output media.
-    #[serde(alias = "w")]
+struct Options {
+    quality: Option<u8>,
     width: Option<u32>,
-
-    /// Height of the output.
-    #[serde(alias = "h")]
     height: Option<u32>,
-}
-
-/// A fire in the data center is undesirable.
-const LIMITS: PxcmprsLimits = PxcmprsLimits {
-    max_dimensions: 4096,
-    max_input_size: 1 << 25, // 32 MiB
-};
-
-/// The index page.
-#[get("/")]
-async fn index(req: HttpRequest) -> Result<HttpResponse> {
-    let mut response = HttpResponse::build(StatusCode::OK);
-
-    let comment = format!(
-        "Pxcmprs version {}\nSyntax: /{{source}}.{{encoding}}?width&height\nDocumentation available at {}\n",
-        env!("CARGO_PKG_VERSION"),
-        env!("CARGO_PKG_REPOSITORY")
-    );
-
-    if let Some(accept) = req.headers().get(header::ACCEPT) {
-        if accept.to_str().unwrap_or("").contains("text/html") {
-            let html = format!("<!--\n{}--><body style=\"background-image: url('https://unsplash.com/photos/erApmfRX7eo/download?w=2400');background-size: cover;background-position: center;\" />", comment);
-
-            return Ok(response.content_type("text/html; charset=utf-8").body(html));
-        }
-    }
-
-    Ok(response.body(comment))
 }
 
 async fn pxcmprs(
     req: HttpRequest,
     command: web::Path<Command>,
-    dimensions: web::Query<Dimensions>,
-) -> Result<HttpResponse, PxcmprsError> {
-    let encoding: &Encoding = match &command.encoding {
-        Some(encoding) => encoding,
-        None => detect_encoding(&req),
-    };
-
+    options: web::Query<Options>,
+) -> actix_web::Result<HttpResponse, error::PxcmprsError> {
     let url = String::from_utf8(base64::decode_config(
         &command.source,
         base64::URL_SAFE_NO_PAD,
     )?)?;
 
-    let fetch_response = fetch_bytes(&url, LIMITS.max_input_size).await?;
+    let cache = req.app_data::<Cache>().unwrap();
 
-    let source_size = fetch_response.bytes.len();
+    let response = cache.get(&url).await.unwrap();
 
-    let (width, height) = LIMITS.sanitize_dimensions(dimensions.width, dimensions.height);
-
-    let output = handle_query(
-        fetch_response.bytes,
-        Query {
-            encoding: *encoding,
-            width: Some(width),
-            height: Some(height),
-            source: url,
-            mode: Some(ResizeMode::Contain),
-        },
-    )?;
-
-    Ok(ResponseBuilder::new(StatusCode::OK)
-        .set_header(header::CONTENT_TYPE, output.mime)
-        .set_header(
-            "pxcmprs-download-ms",
-            fetch_response.duration.as_millis().to_string(),
+    let encoding = command
+        .encoding
+        .clone()
+        .map_or_else(
+            || Ok(Encoding::detect(&req)),
+            |serializable| serializable.to_encoding(options.quality),
         )
-        .set_header("pxcmprs-source-size", source_size)
-        .body(output.bytes))
+        .map_err(TransformError::from)?;
+
+    let new_dimensions = (options.width, options.height);
+
+    let output = transform::bytes(response.bytes, new_dimensions, &encoding)?;
+
+    Ok(HttpResponse::build(StatusCode::OK)
+        .set_header(header::CONTENT_TYPE, encoding.mime_type())
+        .set_header("pxcmprs-upstream-cache", response.status.to_string())
+        .body(output))
 }
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    let cache = Cache::new(Duration::from_secs(24 * 60 * 60));
+
     println!("Listening");
-    HttpServer::new(|| {
-        App::new()
-            .service(
-                web::resource(["/{source}.{encoding}", "/{source}"]).route(web::get().to(pxcmprs)),
-            )
-            .service(index)
+    HttpServer::new(move || {
+        App::new().app_data(cache.clone()).service(
+            web::resource(["/{source}.{encoding}", "/{source}"]).route(web::get().to(pxcmprs)),
+        )
     })
     .bind("0.0.0.0:8080")?
     .run()

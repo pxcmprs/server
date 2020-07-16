@@ -1,0 +1,5 @@
+[fetch]
+allowed_hosts = "blogg.xn--sdermalmsskolan-8sb.com"
+
+[server]
+port = 3000

@@ -104,7 +104,7 @@ impl Encoding {
                     DynamicImage::ImageRgba8(image) => {
                         webp::Encoder::from_rgba(image.as_ref(), width, height)
                     }
-                    _ => return Err(EncodeError::UnsupportedOutput),
+                    _ => return Err(EncodeError::UnsupportedEncoding),
                 };
 
                 Ok(encoder.encode(*quality).to_vec())

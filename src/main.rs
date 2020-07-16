@@ -1,5 +1,6 @@
 mod cache;
 mod error;
+mod settings;
 mod transform;
 
 use actix_web::{
@@ -8,11 +9,13 @@ use actix_web::{
 };
 use cache::Cache;
 use serde::Deserialize;
+use std::str;
 use std::time::Duration;
 use transform::{
     encoding::{Encoding, Serializable as SerializableEncoding},
     error::TransformError,
 };
+use url::Url;
 
 /// Commands defined in the request path.
 #[derive(Deserialize)]
@@ -25,8 +28,13 @@ struct Command {
 
 #[derive(Deserialize)]
 struct Options {
+    #[serde(alias = "q")]
     quality: Option<u8>,
+
+    #[serde(alias = "w")]
     width: Option<u32>,
+
+    #[serde(alias = "h")]
     height: Option<u32>,
 }
 
@@ -35,14 +43,14 @@ async fn pxcmprs(
     command: web::Path<Command>,
     options: web::Query<Options>,
 ) -> actix_web::Result<HttpResponse, error::PxcmprsError> {
-    let url = String::from_utf8(base64::decode_config(
-        &command.source,
-        base64::URL_SAFE_NO_PAD,
-    )?)?;
+    let url_bytes = &base64::decode_config(&command.source, base64::URL_SAFE_NO_PAD)?;
+    let url_str = str::from_utf8(url_bytes)?;
+    let url = Url::parse(url_str)
+        .map_err(|e| error::PxcmprsError::UrlParseError(e, url_str.to_string()))?;
 
     let cache = req.app_data::<Cache>().unwrap();
 
-    let response = cache.get(&url).await.unwrap();
+    let response = cache.get(&url).await?;
 
     let encoding = command
         .encoding
@@ -65,15 +73,25 @@ async fn pxcmprs(
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    let cache = Cache::new(Duration::from_secs(24 * 60 * 60));
+    let settings = settings::Settings::new().unwrap();
 
-    println!("Listening");
+    let cache = Cache::new(
+        Duration::from_secs(24 * 60 * 60),
+        settings.fetch.allowed_hosts,
+    );
+
+    let addr = settings.server.socket_addr();
+
     HttpServer::new(move || {
         App::new().app_data(cache.clone()).service(
             web::resource(["/{source}.{encoding}", "/{source}"]).route(web::get().to(pxcmprs)),
         )
     })
-    .bind("0.0.0.0:8080")?
+    .bind(addr)
+    .map(|op| {
+        println!("Successful bind to {}", addr);
+        op
+    })?
     .run()
     .await
 }

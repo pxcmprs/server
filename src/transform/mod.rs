@@ -15,13 +15,15 @@ pub fn bytes(
     target: &Encoding,
 ) -> TransformResult<Vec<u8>> {
     match (
-        image::guess_format(&bytes).map_err(DecodeError::ImageError)?,
+        image::guess_format(&bytes).map_err(|_| DecodeError::UnsupportedEncoding)?,
         target,
     ) {
         (ImageFormat::Gif, Encoding::Gif) => {
             let mut decoder = gif::Decoder::new(bytes.as_slice());
             decoder.set(gif::ColorOutput::RGBA);
-            let mut decoder = decoder.read_info().unwrap();
+            let mut decoder = decoder
+                .read_info()
+                .map_err(|_| DecodeError::UnsupportedEncoding)?;
 
             let (owidth, oheight) = (decoder.width() as u32, decoder.height() as u32);
 

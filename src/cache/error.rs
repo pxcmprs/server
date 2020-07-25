@@ -39,7 +39,7 @@ impl CacheError {
             CacheError::FetchError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             CacheError::IllegalHost(_) => StatusCode::FORBIDDEN,
             CacheError::MaxSizeExceeded(_, _) => StatusCode::PAYLOAD_TOO_LARGE,
-            CacheError::InvalidInput => StatusCode::UNPROCESSABLE_ENTITY
+            CacheError::InvalidInput => StatusCode::UNPROCESSABLE_ENTITY,
         }
     }
 }

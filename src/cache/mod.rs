@@ -60,7 +60,7 @@ impl Cache {
         Cache {
             entries: CHashMap::with_capacity(options.table_size),
             meta: CHashMap::with_capacity(options.table_size),
-            options
+            options,
         }
     }
 

@@ -10,7 +10,6 @@ use actix_web::{
 use cache::Cache;
 use serde::Deserialize;
 use std::str;
-use std::time::Duration;
 use transform::{
     encoding::{Encoding, Serializable as SerializableEncoding},
     error::TransformError,
@@ -75,10 +74,7 @@ async fn pxcmprs(
 async fn main() -> std::io::Result<()> {
     let settings = settings::Settings::new().unwrap();
 
-    let cache = Cache::new(
-        Duration::from_secs(24 * 60 * 60),
-        settings.fetch.allowed_hosts,
-    );
+    let cache = Cache::new(settings.fetch);
 
     let addr = settings.server.socket_addr();
 

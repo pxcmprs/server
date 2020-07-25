@@ -1,42 +1,40 @@
 use config::{Config, ConfigError, File};
+use humansize::{file_size_opts, FileSize};
 use regex::Regex;
 use serde::Deserialize;
 use std::fmt;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::{IpAddr, SocketAddr};
 
-fn default_allowed_hosts() -> Regex {
-    Regex::new(".*").unwrap()
+#[derive(Debug, Deserialize)]
+pub struct Cache {
+    pub max_age: u64,
+    pub max_entries: usize,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Fetch {
-    #[serde(default = "default_allowed_hosts")]
     #[serde(with = "serde_regex")]
     pub allowed_hosts: Regex,
+    pub max_size: u64,
+    pub cache: Cache,
 }
 
-impl Default for Fetch {
-    fn default() -> Self {
-        Self {
-            allowed_hosts: default_allowed_hosts(),
-        }
+impl fmt::Display for Fetch {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(
+            f,
+            "- Allowed hosts: {}\n- Maximum download size: {}\n- Maximum cache entry age: {}\n- Maximum number of cached entries: {}",
+            self.allowed_hosts,
+            self.max_size.file_size(file_size_opts::BINARY).unwrap(),
+            self.cache.max_age,
+            self.cache.max_entries
+        )
     }
-}
-
-fn default_addr() -> IpAddr {
-    IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))
-}
-
-fn default_port() -> u16 {
-    8080
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Server {
-    #[serde(default = "default_addr")]
     pub address: IpAddr,
-
-    #[serde(default = "default_port")]
     pub port: u16,
 }
 
@@ -46,21 +44,15 @@ impl Server {
     }
 }
 
-impl Default for Server {
-    fn default() -> Self {
-        Self {
-            address: default_addr(),
-            port: default_port(),
-        }
+impl fmt::Display for Server {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "- Listed address: {}", self.socket_addr())
     }
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
-    #[serde(default = "Fetch::default")]
     pub fetch: Fetch,
-
-    #[serde(default = "Server::default")]
     pub server: Server,
 }
 
@@ -68,9 +60,8 @@ impl fmt::Display for Settings {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "- Allowed hosts: {}\n- Listen address: {}",
-            self.fetch.allowed_hosts,
-            self.server.socket_addr()
+            "Fetch settings:\n{}\nServer settings:\n{}",
+            self.fetch, self.server
         )
     }
 }
@@ -81,7 +72,7 @@ impl Settings {
 
         println!("Reading configuration file from Settings.toml:");
 
-        s.merge(File::with_name("Settings").required(false))?;
+        s.merge(File::with_name("Settings").required(true))?;
 
         let config: Settings = s.try_into()?;
 

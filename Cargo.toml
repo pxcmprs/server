@@ -23,7 +23,7 @@ url = "2"
 regex = "1"
 config = "0.10"
 serde_regex = "1"
-# humansize = "1"
+humansize = "1"
 
 [dependencies.num]
 version = "0.3"

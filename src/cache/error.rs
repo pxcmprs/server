@@ -1,13 +1,34 @@
 use actix_web::http::StatusCode;
 use failure::Fail;
+use humansize::{file_size_opts, FileSize};
+use std::fmt;
 
 #[derive(Fail, Debug)]
 pub enum CacheError {
-    #[fail(display = "an upstream fetch error occurred ({})", _0)]
     FetchError(#[cause] reqwest::Error),
-
-    #[fail(display = "illegal host `{}`", _0)]
     IllegalHost(String),
+    MaxSizeExceeded(u64, u64),
+}
+
+fn format_bytes(bytes: u64) -> String {
+    bytes
+        .file_size(file_size_opts::BINARY)
+        .unwrap_or_else(|_| format!("{} bytes", bytes))
+}
+
+impl fmt::Display for CacheError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CacheError::FetchError(ref e) => write!(f, "an upstream fetch error occurred ({})", e),
+            CacheError::IllegalHost(ref host) => write!(f, "illegal host `{}`", host),
+            CacheError::MaxSizeExceeded(ref limit, ref input) => write!(
+                f,
+                "the input size limit of {} was exceeded, received {}",
+                format_bytes(*limit),
+                format_bytes(*input),
+            ),
+        }
+    }
 }
 
 impl CacheError {
@@ -15,6 +36,7 @@ impl CacheError {
         match self {
             CacheError::FetchError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             CacheError::IllegalHost(_) => StatusCode::FORBIDDEN,
+            CacheError::MaxSizeExceeded(_, _) => StatusCode::PAYLOAD_TOO_LARGE,
         }
     }
 }

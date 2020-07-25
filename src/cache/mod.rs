@@ -27,21 +27,38 @@ impl EntryMeta {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct CacheOptions {
+    pub max_age: Duration,
+    pub max_entry_size: u64,
+    pub table_size: usize,
+    pub allowed_hosts: regex::Regex,
+}
+
+impl From<crate::settings::Fetch> for CacheOptions {
+    fn from(settings: crate::settings::Fetch) -> Self {
+        Self {
+            max_age: Duration::from_secs(settings.cache.max_age),
+            max_entry_size: settings.max_size,
+            table_size: settings.cache.max_entries,
+            allowed_hosts: settings.allowed_hosts,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Cache {
-    max_age: Duration,
     entries: CHashMap<String, Vec<u8>>,
     meta: CHashMap<String, EntryMeta>,
-    allowed_hosts: regex::Regex,
+    options: CacheOptions,
 }
 
 impl Cache {
-    pub fn new(max_age: Duration, allowed_hosts: regex::Regex) -> Cache {
+    pub fn new<O: Into<CacheOptions>>(options: O) -> Cache {
         Cache {
-            max_age,
+            options: options.into(),
             entries: CHashMap::new(),
             meta: CHashMap::new(),
-            allowed_hosts,
         }
     }
 
@@ -60,14 +77,37 @@ impl Cache {
         self.entries.insert(normalized, value)
     }
 
+    fn assert_within_size_limit(&self, size: u64) -> CacheResult<()> {
+        if size > self.options.max_entry_size {
+            // The response is larger than the maximum allowed size. ERROR!!!
+            Err(error::CacheError::MaxSizeExceeded(
+                self.options.max_entry_size,
+                size,
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
     pub async fn force_update(&self, url: &Url) -> CacheResult<Option<Vec<u8>>> {
         if let Some(host) = url.host_str() {
-            if self.allowed_hosts.is_match(&host) {
-                let bytes = reqwest::get(&url.to_string())
-                    .await?
-                    .bytes()
-                    .await?
-                    .to_vec();
+            if self.options.allowed_hosts.is_match(&host) {
+                let res = reqwest::get(&url.to_string()).await?;
+
+                let body_size = match res.content_length() {
+                    Some(x) => x,
+                    None => {
+                        // If Reqwest can't determine the size of the input, nobody can! We must play it safe and ABORT!
+                        panic!();
+                        // return Err(error::CacheError::FetchError);
+                    }
+                };
+
+                self.assert_within_size_limit(body_size)?;
+
+                let bytes = res.bytes().await?.to_vec();
+
+                self.assert_within_size_limit(bytes.len() as u64)?;
 
                 Ok(self.insert(url, bytes))
             } else {
@@ -88,7 +128,7 @@ impl Cache {
         let mut status = CacheStatus::Miss;
 
         if let Some(mut meta) = self.meta.get_mut(&Cache::normalize_key(url)) {
-            if meta.age() <= self.max_age {
+            if meta.age() <= self.options.max_age {
                 if let Some(entry) = self.get_entry(url) {
                     status = CacheStatus::Hit;
                     meta.frequency += 1;

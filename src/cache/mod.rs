@@ -55,10 +55,12 @@ pub struct Cache {
 
 impl Cache {
     pub fn new<O: Into<CacheOptions>>(options: O) -> Cache {
+        let options = options.into();
+
         Cache {
-            options: options.into(),
-            entries: CHashMap::new(),
-            meta: CHashMap::new(),
+            entries: CHashMap::with_capacity(options.table_size),
+            meta: CHashMap::with_capacity(options.table_size),
+            options
         }
     }
 
@@ -98,8 +100,7 @@ impl Cache {
                     Some(x) => x,
                     None => {
                         // If Reqwest can't determine the size of the input, nobody can! We must play it safe and ABORT!
-                        panic!();
-                        // return Err(error::CacheError::FetchError);
+                        return Err(error::CacheError::InvalidInput);
                     }
                 };
 

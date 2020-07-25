@@ -8,6 +8,7 @@ pub enum CacheError {
     FetchError(#[cause] reqwest::Error),
     IllegalHost(String),
     MaxSizeExceeded(u64, u64),
+    InvalidInput,
 }
 
 fn format_bytes(bytes: u64) -> String {
@@ -27,6 +28,7 @@ impl fmt::Display for CacheError {
                 format_bytes(*limit),
                 format_bytes(*input),
             ),
+            CacheError::InvalidInput => write!(f, "unable to fetch source",),
         }
     }
 }
@@ -37,6 +39,7 @@ impl CacheError {
             CacheError::FetchError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             CacheError::IllegalHost(_) => StatusCode::FORBIDDEN,
             CacheError::MaxSizeExceeded(_, _) => StatusCode::PAYLOAD_TOO_LARGE,
+            CacheError::InvalidInput => StatusCode::UNPROCESSABLE_ENTITY
         }
     }
 }

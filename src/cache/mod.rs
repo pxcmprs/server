@@ -73,6 +73,10 @@ impl Cache {
         )
     }
 
+    pub fn size(&self) -> usize {
+        self.entries.len()
+    }
+
     pub fn insert(&self, url: &Url, value: Vec<u8>) -> Option<Vec<u8>> {
         let normalized = Cache::normalize_key(url);
         self.meta.insert(normalized.to_string(), EntryMeta::new());

@@ -15,6 +15,7 @@ use transform::{
     error::TransformError,
 };
 use url::Url;
+use settings::Settings;
 
 /// Commands defined in the request path.
 #[derive(Deserialize)]
@@ -48,7 +49,8 @@ async fn pxcmprs(
         .map_err(|e| error::PxcmprsError::UrlParseError(e, url_str.to_string()))?;
 
     let cache = req.app_data::<Cache>().unwrap();
-
+    let transform_settings = req.app_data::<settings::Transform>().unwrap();
+    
     let response = cache.get(&url).await?;
 
     let encoding = command
@@ -62,7 +64,12 @@ async fn pxcmprs(
 
     let new_dimensions = (options.width, options.height);
 
-    let output = transform::bytes(response.bytes, new_dimensions, &encoding)?;
+    let output = transform::bytes(
+        response.bytes,
+        new_dimensions,
+        &encoding,
+        &transform_settings.limits,
+    )?;
 
     Ok(HttpResponse::build(StatusCode::OK)
         .set_header(header::CONTENT_TYPE, encoding.mime_type())
@@ -72,14 +79,16 @@ async fn pxcmprs(
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    let settings = settings::Settings::new().unwrap();
+    let settings = Settings::new().unwrap();
 
     let cache = Cache::new(settings.fetch);
 
     let addr = settings.server.socket_addr();
 
+    let transform_settings = settings.transform;
+
     HttpServer::new(move || {
-        App::new().app_data(cache.clone()).service(
+        App::new().app_data(cache.clone()).app_data(transform_settings.clone()).service(
             web::resource(["/{source}.{encoding}", "/{source}"]).route(web::get().to(pxcmprs)),
         )
     })

@@ -1,5 +1,6 @@
 pub mod encoding;
 pub mod error;
+pub mod limit;
 pub mod resize;
 
 use encoding::Encoding;
@@ -13,7 +14,10 @@ pub fn bytes(
     bytes: Vec<u8>,
     dimensions: (Option<u32>, Option<u32>),
     target: &Encoding,
+    limits: &limit::DimensionLimits,
 ) -> TransformResult<Vec<u8>> {
+    let limit = limits.get(target);
+
     match (
         image::guess_format(&bytes).map_err(|_| DecodeError::UnsupportedEncoding)?,
         target,
@@ -27,8 +31,7 @@ pub fn bytes(
 
             let (owidth, oheight) = (decoder.width() as u32, decoder.height() as u32);
 
-            let (nwidth, nheight) =
-                resize::dimensions((owidth, oheight), dimensions, (1024, 1024), false);
+            let (nwidth, nheight) = resize::dimensions((owidth, oheight), dimensions, limit, false);
 
             let mut output: Vec<u8> = Vec::new();
 
@@ -61,7 +64,7 @@ pub fn bytes(
         }
         _ => {
             let dynamic_image = image::load_from_memory(&bytes).map_err(DecodeError::ImageError)?;
-            let resized = resize::dynimage(dynamic_image, dimensions, (4096, 4096))?;
+            let resized = resize::dynimage(dynamic_image, dimensions, limit)?;
             Ok(target.encode_dynimage(&resized)?)
         }
     }

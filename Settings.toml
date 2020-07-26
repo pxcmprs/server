@@ -9,3 +9,8 @@ max_entries = 10
 [server]
 address = "0.0.0.0"
 port = 8080
+
+[transform.limits]
+default = [4096, 4096]
+gif = [1024, 1024]
+png = [512, 512]

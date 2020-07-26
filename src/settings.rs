@@ -23,7 +23,7 @@ impl fmt::Display for Fetch {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(
             f,
-            "- Allowed hosts: {}\n- Maximum download size: {}\n- Maximum cache entry age: {}\n- Maximum number of cached entries: {}",
+            "- Allowed hosts: {}\n- Maximum download size: {}\n- Maximum cache entry age: {}s\n- Maximum number of cached entries: {}",
             self.allowed_hosts,
             self.max_size.file_size(file_size_opts::BINARY).unwrap(),
             self.cache.max_age,
@@ -46,7 +46,18 @@ impl Server {
 
 impl fmt::Display for Server {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "- Listed address: {}", self.socket_addr())
+        writeln!(f, "- Listen address: {}", self.socket_addr())
+    }
+}
+
+#[derive(Debug, Deserialize, Copy, Clone)]
+pub struct Transform {
+    pub limits: crate::transform::limit::DimensionLimits
+}
+
+impl fmt::Display for Transform {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "- Limits: {:?}", self.limits)
     }
 }
 
@@ -54,14 +65,15 @@ impl fmt::Display for Server {
 pub struct Settings {
     pub fetch: Fetch,
     pub server: Server,
+    pub transform: Transform
 }
 
 impl fmt::Display for Settings {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Fetch settings:\n{}\nServer settings:\n{}",
-            self.fetch, self.server
+            "Fetch settings:\n{}\nServer settings:\n{}Transform settings:\n{}",
+            self.fetch, self.server, self.transform
         )
     }
 }
@@ -72,7 +84,7 @@ impl Settings {
 
         println!("Reading configuration file from Settings.toml:");
 
-        s.merge(File::with_name("Settings").required(true))?;
+        s.merge(File::with_name("Settings"))?;
 
         let config: Settings = s.try_into()?;
 

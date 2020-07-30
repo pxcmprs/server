@@ -1,5 +1,5 @@
-mod cache;
 mod error;
+mod fetch;
 mod settings;
 mod transform;
 
@@ -7,15 +7,15 @@ use actix_web::{
     http::{header, StatusCode},
     web, App, HttpRequest, HttpResponse, HttpServer,
 };
-use cache::Cache;
+use fetch::fetch_bytes;
 use serde::Deserialize;
+use settings::Settings;
 use std::str;
 use transform::{
     encoding::{Encoding, Serializable as SerializableEncoding},
     error::TransformError,
 };
 use url::Url;
-use settings::Settings;
 
 /// Commands defined in the request path.
 #[derive(Deserialize)]
@@ -48,10 +48,10 @@ async fn pxcmprs(
     let url = Url::parse(url_str)
         .map_err(|e| error::PxcmprsError::UrlParseError(e, url_str.to_string()))?;
 
-    let cache = req.app_data::<Cache>().unwrap();
+    let fetch_settings = req.app_data::<settings::Fetch>().unwrap();
     let transform_settings = req.app_data::<settings::Transform>().unwrap();
-    
-    let response = cache.get(&url).await?;
+
+    let bytes = fetch_bytes(&url, fetch_settings).await?;
 
     let encoding = command
         .encoding
@@ -64,16 +64,10 @@ async fn pxcmprs(
 
     let new_dimensions = (options.width, options.height);
 
-    let output = transform::bytes(
-        response.bytes,
-        new_dimensions,
-        &encoding,
-        &transform_settings.limits,
-    )?;
+    let output = transform::bytes(bytes, new_dimensions, &encoding, &transform_settings.limits)?;
 
     Ok(HttpResponse::build(StatusCode::OK)
         .set_header(header::CONTENT_TYPE, encoding.mime_type())
-        .set_header("pxcmprs-upstream-cache", response.status.to_string())
         .body(output))
 }
 
@@ -81,16 +75,18 @@ async fn pxcmprs(
 async fn main() -> std::io::Result<()> {
     let settings = Settings::new().unwrap();
 
-    let cache = Cache::new(settings.fetch);
-
     let addr = settings.server.socket_addr();
 
     let transform_settings = settings.transform;
+    let fetch_settings = settings.fetch;
 
     HttpServer::new(move || {
-        App::new().app_data(cache.clone()).app_data(transform_settings.clone()).service(
-            web::resource(["/{source}.{encoding}", "/{source}"]).route(web::get().to(pxcmprs)),
-        )
+        App::new()
+            .app_data(transform_settings.clone())
+            .app_data(fetch_settings.clone())
+            .service(
+                web::resource(["/{source}.{encoding}", "/{source}"]).route(web::get().to(pxcmprs)),
+            )
     })
     .bind(addr)
     .map(|op| {

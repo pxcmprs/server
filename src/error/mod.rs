@@ -1,4 +1,4 @@
-use super::cache::error::CacheError;
+use super::fetch::error::FetchError;
 use super::transform::error::TransformError;
 use actix_web::{
     error,
@@ -17,7 +17,7 @@ pub enum PxcmprsError {
     #[fail(display = "invalid url (got: {})", _1)]
     UrlParseError(#[cause] url::ParseError, String),
     #[fail(display = "{}", _0)]
-    CacheError(#[cause] CacheError),
+    FetchError(#[cause] FetchError),
     #[fail(display = "{}", _0)]
     TransformError(#[cause] TransformError),
 }
@@ -34,7 +34,7 @@ impl error::ResponseError for PxcmprsError {
             PxcmprsError::Base64Error(_) => StatusCode::BAD_REQUEST,
             PxcmprsError::UnicodeError(_) => StatusCode::BAD_REQUEST,
             PxcmprsError::UrlParseError(_, _) => StatusCode::BAD_REQUEST,
-            PxcmprsError::CacheError(err) => err.status_code(),
+            PxcmprsError::FetchError(err) => err.status_code(),
             PxcmprsError::TransformError(err) => err.status_code(),
         }
     }
@@ -52,9 +52,9 @@ impl From<Utf8Error> for PxcmprsError {
     }
 }
 
-impl From<CacheError> for PxcmprsError {
-    fn from(err: CacheError) -> PxcmprsError {
-        PxcmprsError::CacheError(err)
+impl From<FetchError> for PxcmprsError {
+    fn from(err: FetchError) -> PxcmprsError {
+        PxcmprsError::FetchError(err)
     }
 }
 

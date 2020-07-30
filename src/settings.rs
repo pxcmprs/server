@@ -5,29 +5,20 @@ use serde::Deserialize;
 use std::fmt;
 use std::net::{IpAddr, SocketAddr};
 
-#[derive(Debug, Deserialize)]
-pub struct Cache {
-    pub max_age: u64,
-    pub max_entries: usize,
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Fetch {
     #[serde(with = "serde_regex")]
     pub allowed_hosts: Regex,
     pub max_size: u64,
-    pub cache: Cache,
 }
 
 impl fmt::Display for Fetch {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(
             f,
-            "- Allowed hosts: {}\n- Maximum download size: {}\n- Maximum cache entry age: {}s\n- Maximum number of cached entries: {}",
+            "- Allowed hosts: {}\n- Maximum download size: {}",
             self.allowed_hosts,
-            self.max_size.file_size(file_size_opts::BINARY).unwrap(),
-            self.cache.max_age,
-            self.cache.max_entries
+            self.max_size.file_size(file_size_opts::BINARY).unwrap()
         )
     }
 }
@@ -52,7 +43,7 @@ impl fmt::Display for Server {
 
 #[derive(Debug, Deserialize, Copy, Clone)]
 pub struct Transform {
-    pub limits: crate::transform::limit::DimensionLimits
+    pub limits: crate::transform::limit::DimensionLimits,
 }
 
 impl fmt::Display for Transform {
@@ -65,7 +56,7 @@ impl fmt::Display for Transform {
 pub struct Settings {
     pub fetch: Fetch,
     pub server: Server,
-    pub transform: Transform
+    pub transform: Transform,
 }
 
 impl fmt::Display for Settings {

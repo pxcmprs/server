@@ -1,0 +1,15 @@
+[fetch]
+# Allowed hosts to download source media from.
+allowed_hosts = ".*"
+
+# The maximum input size of a media. Larger files will be rejected.
+max_size = 33554432 # 32 MiB
+
+[server]
+address = "0.0.0.0"
+port = 8080
+
+# Dimension limits for different file formats. [width, height] in pixels.
+[transform.limits]
+default = [4096, 4096]
+gif = [1024, 1024]

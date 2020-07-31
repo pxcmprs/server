@@ -7,21 +7,24 @@ repository = "https://github.com/pxcmprs/server"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies.pxcmprs-core]
-version = "0.1.1"
-default-features = false
-features = ["pipeline"]
+[dependencies]
+actix-web = "2.0"
+actix-rt = "1.0"
+failure = "0.1"
+serde = "1"
+image = "0.23"
+chashmap = "2.2"
+base64 = "0.12"
+reqwest = "0.10"
+mime = "0.3"
+webp = "0.1"
+gif = "0.10"
+url = "2"
+regex = "1"
+config = "0.10"
+serde_regex = "1"
+humansize = "1"
 
 [dependencies.num]
 version = "0.3"
 default-features = false
-
-[dependencies]
-actix-web = "2.0"
-actix-rt = "1.0"
-actix-http = "1"
-failure = "0.1"
-serde = "1"
-base64 = "0.12"
-reqwest = "0.10"
-humansize = "1"

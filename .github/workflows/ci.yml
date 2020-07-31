@@ -135,7 +135,7 @@ jobs:
         env:
           VERSION: ${{ env.VERSION }}
         with:
-          name: thepiconerd/pxcmprs-server
+          name: pxcmprs/server
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: "latest,v${{ env.VERSION }}"

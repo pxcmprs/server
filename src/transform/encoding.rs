@@ -23,7 +23,7 @@ impl Default for Encoding {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum Serializable {
-    #[serde(rename = "jpeg")]
+    #[serde(rename = "jpeg", alias = "jpg")]
     Jpeg,
 
     #[serde(rename = "webp")]

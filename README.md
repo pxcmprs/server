@@ -23,12 +23,6 @@
 | `height`  | `?int` | Height of the new media.                                                                                   |
 | `quality` | `?int` | Encoding quality (only used for specific encodings like `WebP` and `JPEG`). Must be in the range of 0-100. |
 
-#### Special headers
-
-| Name                     | Description                                      |
-| ------------------------ | ------------------------------------------------ |
-| `pxcmprs-upstream-cache` | Cache status. Either `HIT`, `MISS` or `EXPIRED`. |
-
 #### Example
 
 ![](https://cdn.spacetelescope.org/archives/images/large/heic0206b.jpg)

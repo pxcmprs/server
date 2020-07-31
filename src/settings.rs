@@ -1,4 +1,4 @@
-use config::{Config, ConfigError, File};
+use config::{Config, ConfigError, Environment, File};
 use humansize::{file_size_opts, FileSize};
 use regex::Regex;
 use serde::Deserialize;
@@ -75,7 +75,8 @@ impl Settings {
 
         println!("Reading configuration file from Settings.toml:");
 
-        s.merge(File::with_name("Settings"))?;
+        s.merge(File::with_name("Settings"))?
+            .merge(Environment::with_prefix("PXCMPRS").separator("__"))?;
 
         let config: Settings = s.try_into()?;
 

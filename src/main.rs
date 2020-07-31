@@ -82,7 +82,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .app_data(transform_settings.clone())
+            .app_data(transform_settings)
             .app_data(fetch_settings.clone())
             .service(
                 web::resource(["/{source}.{encoding}", "/{source}"]).route(web::get().to(pxcmprs)),

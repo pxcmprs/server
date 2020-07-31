@@ -127,7 +127,8 @@ jobs:
       - uses: actions/checkout@master
 
       - name: Setting ENV's
-        run: echo ::set-env name=VERSION::$(cut -d "#" -f2 <<< $(cargo pkgid))
+        run: |
+          echo ::set-env name=VERSION::$(cargo pkgid | cut -d# -f2 | cut -d: -f2)
         shell: bash
 
       - name: Publish to Registry
@@ -155,7 +156,8 @@ jobs:
           path: ./linux
 
       - name: Setting ENV's
-        run: echo ::set-env name=VERSION::$(cut -d "#" -f2 <<< $(cargo pkgid))
+        run: |
+          echo ::set-env name=VERSION::$(cargo pkgid | cut -d# -f2 | cut -d: -f2)
         shell: bash
 
       - name: Upload Linux Release

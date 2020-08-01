@@ -50,14 +50,3 @@ Selector labels
 app.kubernetes.io/name: {{ include "pxcmprs-server.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "pxcmprs-server.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "pxcmprs-server.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}

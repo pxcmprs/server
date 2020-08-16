@@ -63,7 +63,7 @@ impl fmt::Display for Settings {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Fetch settings:\n{}\nServer settings:\n{}Transform settings:\n{}",
+            "Fetch settings:\n{}\nServer settings:\n{}\nTransform settings:\n{}",
             self.fetch, self.server, self.transform
         )
     }

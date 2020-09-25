@@ -94,10 +94,7 @@ nginx:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.tls.certresolver: le-http
-    hosts:
-      - host: pxcmprs.lynx.agency
-        paths:
-          - "/"
+    hostname: pxcmprs.lynx.agency
   serverBlock: |-
     proxy_cache_path /opt/bitnami/nginx/cache use_temp_path=off levels=1:2 keys_zone=cache_zone:100m max_size=100m inactive=1d;
 

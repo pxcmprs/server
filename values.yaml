@@ -1,0 +1,120 @@
+# Default values for pxcmprs-server.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: pxcmprs/server
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart version.
+  tag: "v0.1.1"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+settings:
+  PXCMPRS_FETCH__ALLOWED_HOSTS: "unsplash\\.com|.*\\.?xn--sdermalmsskolan-8sb\\.com|cdn\\.discordapp\\.com"
+  PXCMPRS_FETCH__MAX_SIZE: "33554432" # 32 MiB
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Ingress. Routes directly to pxcmprs-server – use nginx.ingress instead if you wish to route via Nginx.
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: pxcmprs-server.local
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 1000m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  # targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+nginx:
+  enabled: true
+  service:
+    type: ClusterIP
+  ingress:
+    # enabled: false
+    enabled: true
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.tls.certresolver: le-http
+    hostname: pxcmprs.lynx.agency
+  serverBlock: |-
+    proxy_cache_path /opt/bitnami/nginx/cache use_temp_path=off levels=1:2 keys_zone=cache_zone:100m max_size=100m inactive=1d;
+
+    server {
+      resolver 8.8.8.8;
+      listen 8080 default_server;
+
+      location / {
+        expires 1d;
+        proxy_cache cache_zone;
+        proxy_cache_valid 200 302 301 1d;
+        # Add the `Accept` header as a cache key since Pxcmprs uses that to determine if the client supports WebP pictures. This is a sub-optimal solution, but it works fine.
+        proxy_cache_key "$http_accept$request_uri";
+        proxy_cache_methods GET HEAD;
+        proxy_cache_lock on;
+        proxy_pass http://pxcmprs-pxcmprs-server; # Change this if nameOverride is used!
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header pxcmprs-cache $upstream_cache_status;
+        proxy_ignore_headers "Set-Cookie";
+      }
+    }

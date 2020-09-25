@@ -23,8 +23,8 @@ version: 0.1.0
 appVersion: 0.1.0
 
 dependencies:
-- name: nginx
-  version: "~6.0.2"
-  repository: "https://charts.bitnami.com/bitnami"
-  condition: nginx.enabled
-  alias: nginx
+  - name: nginx
+    version: "~6.0.2"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: nginx.enabled
+    alias: nginx

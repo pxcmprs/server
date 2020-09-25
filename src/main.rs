@@ -71,7 +71,13 @@ async fn pxcmprs(
         .body(output))
 }
 
-#[actix_rt::main]
+async fn index() -> HttpResponse {
+    HttpResponse::Ok().content_type("text/html; charset=utf-8").body(r#"<html>
+        <body style="background-image: url('/aHR0cHM6Ly91bnNwbGFzaC5jb20vcGhvdG9zL2JzR015QUtENWhrL2Rvd25sb2Fk'); background-size: cover; background-position: center; min-height: 100vh; margin: 0;"/>
+    </html>"#)
+}
+
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let settings = Settings::new().unwrap();
 
@@ -84,6 +90,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(transform_settings)
             .app_data(fetch_settings.clone())
+            .service(web::resource("/").route(web::get().to(index)))
             .service(
                 web::resource(["/{source}.{encoding}", "/{source}"]).route(web::get().to(pxcmprs)),
             )

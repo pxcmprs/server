@@ -64,6 +64,7 @@ pub fn dimensions(
     }
 }
 
+/// Resize a `DynamicImage` to another dimension.
 pub fn dynimage(
     image: DynamicImage,
     (nwidth, nheight): (Option<u32>, Option<u32>),

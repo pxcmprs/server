@@ -5,6 +5,14 @@ authors = ["Åke Amcoff <ake.amcoff@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/pxcmprs/server"
 
+[lib]
+name = "pxcmprs_server"
+path = "src/lib.rs"
+
+[[bin]]
+name = "pxcmprs_server"
+path = "src/main.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

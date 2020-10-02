@@ -11,7 +11,8 @@ pub enum FetchError {
     InvalidInput,
 }
 
-fn format_bytes(bytes: u64) -> String {
+/// Converts a byte count to a human readable format.
+fn format_bytecount(bytes: u64) -> String {
     bytes
         .file_size(file_size_opts::BINARY)
         .unwrap_or_else(|_| format!("{} bytes", bytes))
@@ -25,8 +26,8 @@ impl fmt::Display for FetchError {
             FetchError::MaxSizeExceeded(ref limit, ref input) => write!(
                 f,
                 "the input size limit of {} was exceeded, received {}",
-                format_bytes(*limit),
-                format_bytes(*input),
+                format_bytecount(*limit),
+                format_bytecount(*input),
             ),
             FetchError::InvalidInput => write!(f, "unable to fetch source",),
         }

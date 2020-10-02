@@ -1,20 +1,20 @@
-mod error;
-mod fetch;
-mod settings;
-mod transform;
-
 use actix_web::{
     http::{header, StatusCode},
     web, App, HttpRequest, HttpResponse, HttpServer,
 };
-use fetch::fetch_bytes;
-use serde::Deserialize;
-use settings::Settings;
-use std::str;
-use transform::{
-    encoding::{Encoding, Serializable as SerializableEncoding},
-    error::TransformError,
+use pxcmprs_server::{
+    error,
+    fetch::fetch_bytes,
+    settings,
+    settings::Settings,
+    transform::{
+        self,
+        encoding::{Encoding, Serializable as SerializableEncoding},
+        error::TransformError,
+    },
 };
+use serde::Deserialize;
+use std::str;
 use url::Url;
 
 /// Commands defined in the request path.
@@ -64,7 +64,8 @@ async fn pxcmprs(
 
     let new_dimensions = (options.width, options.height);
 
-    let output = transform::bytes(bytes, new_dimensions, &encoding, &transform_settings.limits)?;
+    let output =
+        transform::transform_vec(bytes, new_dimensions, &encoding, &transform_settings.limits)?;
 
     Ok(HttpResponse::build(StatusCode::OK)
         .set_header(header::CONTENT_TYPE, encoding.mime_type())

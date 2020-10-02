@@ -37,6 +37,7 @@ pub enum Serializable {
 }
 
 impl Serializable {
+    /// Convert a serializable encoding to an `Encoding`.
     pub fn to_encoding(&self, quality: Option<u8>) -> EncodeResult<Encoding> {
         let quality = quality.unwrap_or(85);
 
@@ -120,5 +121,21 @@ impl Encoding {
                 Ok(bytes)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn test_serializale_to_encoding() {
+        let serializable = Serializable::WebP;
+
+        assert_eq!(
+            serializable.to_encoding(Some(69)).unwrap().mime_type(),
+            Encoding::WebP(69.0).mime_type()
+        );
     }
 }

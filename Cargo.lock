@@ -232,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "actix-web"
-version = "3.0.2"
+version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "actix-codec 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -264,7 +264,7 @@ dependencies = [
  "serde_urlencoded 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "socket2 0.3.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)",
- "tinyvec 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tinyvec 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1585,7 +1585,7 @@ dependencies = [
 name = "pxcmprs-server"
 version = "0.1.1"
 dependencies = [
- "actix-web 3.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "actix-web 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "base64 0.12.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "chashmap 2.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "config 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2209,6 +2209,19 @@ version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "tinyvec"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "tinyvec_macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "tinyvec_macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "tokio"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2577,7 +2590,7 @@ dependencies = [
 "checksum actix-tls 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "24789b7d7361cf5503a504ebe1c10806896f61e96eca9a7350e23001aca715fb"
 "checksum actix-utils 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)" = "fcf8f5631bf01adec2267808f00e228b761c60c0584cc9fa0b5364f41d147f4e"
 "checksum actix-utils 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2e9022dec56632d1d7979e59af14f0597a28a830a9c1c7fec8b2327eb9f16b5a"
-"checksum actix-web 3.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "36de80175eb1f0a5c518024ce0d23646b54a23008279e090ca1848f6f1448bf4"
+"checksum actix-web 3.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c1b12fe25e11cd9ed2ef2e428427eb6178a1b363f3f7f0dab8278572f11b2da1"
 "checksum actix-web-codegen 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "750ca8fb60bbdc79491991650ba5d2ae7cd75f3fc00ead51390cfe9efda0d4d8"
 "checksum addr2line 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1b6a2d3371669ab3ca9797670853d61402b03d0b4b9ebf33d677dfa720203072"
 "checksum adler 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ee2a4ec343196209d6594e19543ae87a39f96d5534d7174822a3ad825dd6ed7e"
@@ -2801,6 +2814,8 @@ dependencies = [
 "checksum time-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9ae9b6e9f095bc105e183e3cd493d72579be3181ad4004fceb01adbe9eecab2d"
 "checksum time-macros-impl 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "e5c3be1edfad6027c69f5491cf4cb310d1a71ecd6af742788c6ff8bced86b8fa"
 "checksum tinyvec 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "53953d2d3a5ad81d9f844a32f14ebb121f50b650cd59d0ee2a07cf13c617efed"
+"checksum tinyvec 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "b78a366903f506d2ad52ca8dc552102ffdd3e937ba8a227f024dc1d1eae28575"
+"checksum tinyvec_macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 "checksum tokio 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)" = "d099fa27b9702bed751524694adbe393e18b36b204da91eb1cbbbbb4a5ee2d58"
 "checksum tokio-tls 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "9a70f4fcd7b3b24fb194f837560168208f669ca8cb70d0c4b862944452396343"
 "checksum tokio-util 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "571da51182ec208780505a32528fc5512a8fe1443ab960b3f2f3ef093cd16930"

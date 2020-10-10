@@ -1583,7 +1583,7 @@ dependencies = [
 
 [[package]]
 name = "pxcmprs-server"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "actix-web 3.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "base64 0.12.3 (registry+https://github.com/rust-lang/crates.io-index)",

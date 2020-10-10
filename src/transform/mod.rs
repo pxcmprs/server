@@ -10,7 +10,8 @@ use image::{DynamicImage, GenericImageView, ImageFormat, RgbaImage};
 
 pub type TransformResult<T> = Result<T, TransformError>;
 
-pub fn bytes(
+/// Transform a byte vector to another byte vector. This function guesses the encoding based on the data and converts it to another format with new dimensions.
+pub fn transform_vec(
     bytes: Vec<u8>,
     dimensions: (Option<u32>, Option<u32>),
     target: &Encoding,

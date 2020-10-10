@@ -9,6 +9,8 @@ pub struct DimensionLimits {
     pub webp: Option<DimensionLimit>,
     pub png: Option<DimensionLimit>,
     pub gif: Option<DimensionLimit>,
+
+    /// The default limit used as a fallback for the formats.
     pub default: DimensionLimit,
 }
 

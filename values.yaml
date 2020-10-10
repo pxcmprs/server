@@ -103,7 +103,7 @@ nginx:
       listen 8080 default_server;
 
       location / {
-        expires 1d;
+        expires 30d;
         proxy_cache cache_zone;
         proxy_cache_valid 200 302 301 1d;
         # Add the `Accept` header as a cache key since Pxcmprs uses that to determine if the client supports WebP pictures. This is a sub-optimal solution, but it works fine.

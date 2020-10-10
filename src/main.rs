@@ -69,6 +69,7 @@ async fn pxcmprs(
 
     Ok(HttpResponse::build(StatusCode::OK)
         .set_header(header::CONTENT_TYPE, encoding.mime_type())
+        .set_header(header::VIA, "pxcmprs")
         .body(output))
 }
 

@@ -7,7 +7,7 @@ max_size = 33554432 # 32 MiB
 
 [server]
 address = "0.0.0.0"
-port = 8080
+port = 3000
 
 # Dimension limits for different file formats. [width, height] in pixels.
 [transform.limits]

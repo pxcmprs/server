@@ -3,15 +3,12 @@ use actix_web::{
     web, App, HttpRequest, HttpResponse, HttpServer,
 };
 use pxcmprs_server::{
+    encoding::{Encoding, Serializable as SerializableEncoding},
     error,
     fetch::fetch_bytes,
     settings,
     settings::Settings,
-    transform::{
-        self,
-        encoding::{Encoding, Serializable as SerializableEncoding},
-        error::TransformError,
-    },
+    transform::{self, error::TransformError},
 };
 use serde::Deserialize;
 use std::str;
@@ -75,7 +72,7 @@ async fn pxcmprs(
 
 async fn index() -> HttpResponse {
     HttpResponse::Ok().content_type("text/html; charset=utf-8").body(r#"<html>
-        <body style="background-image: url('/aHR0cHM6Ly91bnNwbGFzaC5jb20vcGhvdG9zL2JzR015QUtENWhrL2Rvd25sb2Fk'); background-size: cover; background-position: center; min-height: 100vh; margin: 0;"/>
+        <body style="background-image: url('/transform/aHR0cHM6Ly91bnNwbGFzaC5jb20vcGhvdG9zL2JzR015QUtENWhrL2Rvd25sb2Fk'); background-size: cover; background-position: center; min-height: 100vh; margin: 0;"/>
     </html>"#)
 }
 
@@ -94,7 +91,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(fetch_settings.clone())
             .service(web::resource("/").route(web::get().to(index)))
             .service(
-                web::resource(["/{source}.{encoding}", "/{source}"]).route(web::get().to(pxcmprs)),
+                web::resource(["/transform/{source}.{encoding}", "/transform/{source}"])
+                    .route(web::get().to(pxcmprs)),
             )
     })
     .bind(addr)

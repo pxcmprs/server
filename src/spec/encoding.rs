@@ -1,11 +1,9 @@
-use super::error::EncodeError;
+use super::error::{EncodeError, EncodeResult};
 use actix_web::{http::header, HttpRequest};
 use image::{DynamicImage, GenericImageView, ImageOutputFormat};
 use mime::{Mime, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-
-type EncodeResult<T> = Result<T, EncodeError>;
 
 #[derive(Debug, Clone)]
 pub enum Encoding {

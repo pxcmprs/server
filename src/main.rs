@@ -54,7 +54,7 @@ async fn pxcmprs(
         .encoding
         .clone()
         .map_or_else(
-            || Ok(Encoding::detect(&req)),
+            || Ok(Encoding::from_http_request(&req)),
             |serializable| serializable.to_encoding(options.quality),
         )
         .map_err(TransformError::from)?;
@@ -62,7 +62,7 @@ async fn pxcmprs(
     let new_dimensions = (options.width, options.height);
 
     let output =
-        transform::transform_vec(bytes, new_dimensions, &encoding, &transform_settings.limits)?;
+        transform::transform_bytes(bytes, new_dimensions, &encoding, &transform_settings.limits)?;
 
     Ok(HttpResponse::build(StatusCode::OK)
         .set_header(header::CONTENT_TYPE, encoding.mime_type())
@@ -84,6 +84,8 @@ async fn main() -> std::io::Result<()> {
 
     let transform_settings = settings.transform;
     let fetch_settings = settings.fetch;
+
+    env_logger::init();
 
     HttpServer::new(move || {
         App::new()

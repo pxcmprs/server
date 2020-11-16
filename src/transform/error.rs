@@ -14,15 +14,15 @@ pub enum DecodeError {
 impl DecodeError {
     pub fn status_code(&self) -> StatusCode {
         match self {
-            DecodeError::ImageError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            DecodeError::UnsupportedEncoding => StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            Self::ImageError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::UnsupportedEncoding => StatusCode::UNSUPPORTED_MEDIA_TYPE,
         }
     }
 }
 
 impl From<image::ImageError> for DecodeError {
-    fn from(err: image::ImageError) -> DecodeError {
-        DecodeError::ImageError(err)
+    fn from(err: image::ImageError) -> Self {
+        Self::ImageError(err)
     }
 }
 
@@ -38,20 +38,20 @@ pub enum TransformError {
 impl TransformError {
     pub fn status_code(&self) -> StatusCode {
         match self {
-            TransformError::EncodeError(err) => err.status_code(),
-            TransformError::DecodeError(err) => err.status_code(),
+            Self::EncodeError(err) => err.status_code(),
+            Self::DecodeError(err) => err.status_code(),
         }
     }
 }
 
 impl From<EncodeError> for TransformError {
-    fn from(err: EncodeError) -> TransformError {
-        TransformError::EncodeError(err)
+    fn from(err: EncodeError) -> Self {
+        Self::EncodeError(err)
     }
 }
 
 impl From<DecodeError> for TransformError {
-    fn from(err: DecodeError) -> TransformError {
-        TransformError::DecodeError(err)
+    fn from(err: DecodeError) -> Self {
+        Self::DecodeError(err)
     }
 }

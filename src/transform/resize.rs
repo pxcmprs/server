@@ -1,4 +1,5 @@
 use super::TransformResult;
+use super::{Dimensions, OptionalDimensions};
 use image::{DynamicImage, GenericImageView};
 use num::clamp;
 
@@ -9,12 +10,12 @@ use num::clamp;
 /// aspect ratio), or will shrink so that both dimensions are
 /// completely contained with in the given `width` and `height`,
 /// with empty space on one axis.
-pub fn dimensions(
-    old: (u32, u32),
-    new: (Option<u32>, Option<u32>),
-    limit: (u32, u32),
+pub fn calculate_dimensions(
+    old: Dimensions,
+    new: OptionalDimensions,
+    limit: Dimensions,
     fill: bool,
-) -> (u32, u32) {
+) -> Dimensions {
     let (width, height) = old;
     let (wlimit, hlimit) = limit;
     let (nwidth, nheight) = new;
@@ -40,11 +41,13 @@ pub fn dimensions(
     } else {
         nratio <= ratio
     };
+
     let intermediate = if use_width {
         u64::from(height) * u64::from(nwidth) / u64::from(width)
     } else {
         u64::from(width) * u64::from(nheight) / u64::from(height)
     };
+
     if use_width {
         if intermediate <= u64::from(::std::u32::MAX) {
             (nwidth, intermediate as u32)
@@ -65,11 +68,12 @@ pub fn dimensions(
 }
 
 /// Resize a `DynamicImage` to another dimension.
-pub fn dynimage(
+pub fn resize_dynimage(
     image: DynamicImage,
-    (nwidth, nheight): (Option<u32>, Option<u32>),
-    limit: (u32, u32),
+    (nwidth, nheight): OptionalDimensions,
+    limit: Dimensions,
 ) -> TransformResult<DynamicImage> {
-    let (nwidth, nheight) = dimensions(image.dimensions(), (nwidth, nheight), limit, false);
+    let (nwidth, nheight) =
+        calculate_dimensions(image.dimensions(), (nwidth, nheight), limit, false);
     Ok(image.thumbnail_exact(nwidth, nheight))
 }

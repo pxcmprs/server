@@ -31,24 +31,24 @@ impl error::ResponseError for PxcmprsError {
 
     fn status_code(&self) -> StatusCode {
         match self {
-            PxcmprsError::Base64Error(_) => StatusCode::BAD_REQUEST,
-            PxcmprsError::UnicodeError(_) => StatusCode::BAD_REQUEST,
-            PxcmprsError::UrlParseError(_, _) => StatusCode::BAD_REQUEST,
-            PxcmprsError::FetchError(err) => err.status_code(),
-            PxcmprsError::TransformError(err) => err.status_code(),
+            Self::Base64Error(_) => StatusCode::BAD_REQUEST,
+            Self::UnicodeError(_) => StatusCode::BAD_REQUEST,
+            Self::UrlParseError(_, _) => StatusCode::BAD_REQUEST,
+            Self::FetchError(err) => err.status_code(),
+            Self::TransformError(err) => err.status_code(),
         }
     }
 }
 
 impl From<base64::DecodeError> for PxcmprsError {
-    fn from(err: base64::DecodeError) -> PxcmprsError {
-        PxcmprsError::Base64Error(err)
+    fn from(err: base64::DecodeError) -> Self {
+        Self::Base64Error(err)
     }
 }
 
 impl From<Utf8Error> for PxcmprsError {
-    fn from(err: Utf8Error) -> PxcmprsError {
-        PxcmprsError::UnicodeError(err)
+    fn from(err: Utf8Error) -> Self {
+        Self::UnicodeError(err)
     }
 }
 

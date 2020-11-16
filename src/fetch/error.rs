@@ -21,15 +21,15 @@ fn format_bytecount(bytes: u64) -> String {
 impl fmt::Display for FetchError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            FetchError::FetchError(ref e) => write!(f, "an upstream fetch error occurred ({})", e),
-            FetchError::IllegalHost(ref host) => write!(f, "illegal host `{}`", host),
-            FetchError::MaxSizeExceeded(ref limit, ref input) => write!(
+            Self::FetchError(ref e) => write!(f, "an upstream fetch error occurred ({})", e),
+            Self::IllegalHost(ref host) => write!(f, "illegal host `{}`", host),
+            Self::MaxSizeExceeded(ref limit, ref input) => write!(
                 f,
-                "the input size limit of {} was exceeded, received {}",
+                "the input size limit of {} was exceeded (received {})",
                 format_bytecount(*limit),
                 format_bytecount(*input),
             ),
-            FetchError::InvalidInput => write!(f, "unable to fetch source",),
+            Self::InvalidInput => write!(f, "unable to fetch source",),
         }
     }
 }
@@ -37,16 +37,16 @@ impl fmt::Display for FetchError {
 impl FetchError {
     pub fn status_code(&self) -> StatusCode {
         match self {
-            FetchError::FetchError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            FetchError::IllegalHost(_) => StatusCode::FORBIDDEN,
-            FetchError::MaxSizeExceeded(_, _) => StatusCode::PAYLOAD_TOO_LARGE,
-            FetchError::InvalidInput => StatusCode::UNPROCESSABLE_ENTITY,
+            Self::FetchError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::IllegalHost(_) => StatusCode::FORBIDDEN,
+            Self::MaxSizeExceeded(_, _) => StatusCode::PAYLOAD_TOO_LARGE,
+            Self::InvalidInput => StatusCode::UNPROCESSABLE_ENTITY,
         }
     }
 }
 
 impl From<reqwest::Error> for FetchError {
-    fn from(err: reqwest::Error) -> FetchError {
-        FetchError::FetchError(err)
+    fn from(err: reqwest::Error) -> Self {
+        Self::FetchError(err)
     }
 }

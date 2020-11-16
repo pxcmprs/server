@@ -16,16 +16,16 @@ pub enum EncodeError {
 impl EncodeError {
     pub fn status_code(&self) -> StatusCode {
         match self {
-            EncodeError::ImageError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            EncodeError::UnsupportedEncoding => StatusCode::UNSUPPORTED_MEDIA_TYPE,
-            EncodeError::InvalidQuality(_, _, _) => StatusCode::BAD_REQUEST,
+            Self::ImageError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::UnsupportedEncoding => StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            Self::InvalidQuality(_, _, _) => StatusCode::BAD_REQUEST,
         }
     }
 }
 
 impl From<image::ImageError> for EncodeError {
-    fn from(err: image::ImageError) -> EncodeError {
-        EncodeError::ImageError(err)
+    fn from(err: image::ImageError) -> Self {
+        Self::ImageError(err)
     }
 }
 

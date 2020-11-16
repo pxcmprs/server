@@ -43,10 +43,10 @@ impl Serializable {
 
         if quality <= 100 {
             Ok(match self {
-                Serializable::Jpeg => Encoding::Jpeg(quality),
-                Serializable::WebP => Encoding::WebP(quality as f32),
-                Serializable::Png => Encoding::Png,
-                Serializable::Gif => Encoding::Gif,
+                Self::Jpeg => Encoding::Jpeg(quality),
+                Self::WebP => Encoding::WebP(quality as f32),
+                Self::Png => Encoding::Png,
+                Self::Gif => Encoding::Gif,
             })
         } else {
             Err(EncodeError::InvalidQuality(0, 100, quality))
@@ -55,18 +55,18 @@ impl Serializable {
 }
 
 impl From<Encoding> for Serializable {
-    fn from(encoding: Encoding) -> Serializable {
+    fn from(encoding: Encoding) -> Self {
         match encoding {
-            Encoding::Jpeg(_) => Serializable::Jpeg,
-            Encoding::WebP(_) => Serializable::WebP,
-            Encoding::Png => Serializable::Png,
-            Encoding::Gif => Serializable::Gif,
+            Encoding::Jpeg(_) => Self::Jpeg,
+            Encoding::WebP(_) => Self::WebP,
+            Encoding::Png => Self::Png,
+            Encoding::Gif => Self::Gif,
         }
     }
 }
 
 impl Encoding {
-    pub fn detect(req: &HttpRequest) -> Encoding {
+    pub fn from_http_request(req: &HttpRequest) -> Encoding {
         if let Some(accept) = req.headers().get(header::ACCEPT) {
             if accept.to_str().unwrap_or("").contains("image/webp") {
                 return Encoding::WebP(85.0);
@@ -78,26 +78,27 @@ impl Encoding {
 
     pub fn image_output_format(&self) -> Option<ImageOutputFormat> {
         match self {
-            Encoding::Jpeg(ref quality) => Some(ImageOutputFormat::Jpeg(*quality)),
-            Encoding::WebP(_) => None,
-            Encoding::Png => Some(ImageOutputFormat::Png),
-            Encoding::Gif => Some(ImageOutputFormat::Gif),
+            Self::Jpeg(ref quality) => Some(ImageOutputFormat::Jpeg(*quality)),
+            Self::WebP(_) => None,
+            Self::Png => Some(ImageOutputFormat::Png),
+            Self::Gif => Some(ImageOutputFormat::Gif),
         }
     }
 
     pub fn mime_type(self) -> Mime {
         match self {
-            Encoding::Jpeg(_) => IMAGE_JPEG,
-            Encoding::WebP(_) => Mime::from_str("image/webp").unwrap(),
-            Encoding::Png => IMAGE_PNG,
-            Encoding::Gif => IMAGE_GIF,
+            Self::Jpeg(_) => IMAGE_JPEG,
+            Self::WebP(_) => Mime::from_str("image/webp").unwrap(),
+            Self::Png => IMAGE_PNG,
+            Self::Gif => IMAGE_GIF,
         }
     }
 
     pub fn encode_dynimage(&self, image: &DynamicImage) -> EncodeResult<Vec<u8>> {
         match self {
-            Encoding::WebP(ref quality) => {
+            Self::WebP(ref quality) => {
                 let (width, height) = image.dimensions();
+
                 let encoder: webp::Encoder = match image {
                     DynamicImage::ImageRgb8(image) => {
                         webp::Encoder::from_rgb(image.as_ref(), width, height)
@@ -126,7 +127,6 @@ impl Encoding {
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
